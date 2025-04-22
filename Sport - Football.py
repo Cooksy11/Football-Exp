@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 22 14:29:53 2025
-
-@author: Sukhdeep.Sangha
-"""
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -49,7 +43,6 @@ scoreline_filter = st.sidebar.multiselect("Goal Scoreline Filter", scoreline_opt
 st.markdown("*Favourites are determined using Goal Expectancy at the earliest available minute in each match")
 
 # --- Helper Functions ---
-
 def classify_favouritism(row):
     diff = abs(row['GOAL_EXP_HOME'] - row['GOAL_EXP_AWAY'])
     if diff > 1:
@@ -148,7 +141,19 @@ def compute_exp_by_role(df, exp_type):
 plots = []
 
 if exp_types:
-    layout_cols = st.columns(2) if len(exp_types) > 1 else []
+    # Dynamic layout
+    if len(exp_types) == 1:
+        layout_cols = [st]
+        n_cols = 1
+        fig_size = (14, 6)
+    elif len(exp_types) <= 3:
+        layout_cols = st.columns(2)
+        n_cols = 2
+        fig_size = (12, 6)
+    else:
+        layout_cols = st.columns(3)
+        n_cols = 3
+        fig_size = (10, 5.5)
 
     for i, exp_type in enumerate(exp_types[:6]):
         df_changes = compute_exp_by_role(df, exp_type)
@@ -169,7 +174,7 @@ if exp_types:
         title_line = f"{exp_type} Expectancy Change"
         filter_context = f"Date: {start_date.strftime('%d/%m/%Y')}–{end_date.strftime('%d/%m/%Y')} | Fav: {', '.join(fav_filter)} | Scoreline: {', '.join(scoreline_filter)}"
 
-        fig, ax = plt.subplots(figsize=(12, 6))
+        fig, ax = plt.subplots(figsize=fig_size)
         ax.plot(avg_change.index, avg_change.values, marker='o', color='black')
         ax.set_title(f"{title_line}\n{filter_context}", fontsize=12)
         ax.set_xlabel("Time Band (Minutes)")
@@ -179,10 +184,7 @@ if exp_types:
 
         plots.append(fig)
 
-        if layout_cols:
-            with layout_cols[i % 2]:
-                st.pyplot(fig, use_container_width=True)
-        else:
+        with layout_cols[i % n_cols]:
             st.pyplot(fig, use_container_width=True)
 else:
     st.warning("Please select at least one expectancy type to display charts.")
@@ -203,4 +205,3 @@ if plots:
         file_name="expectancy_graphs.pdf",
         mime="application/pdf"
     )
-
