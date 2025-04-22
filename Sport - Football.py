@@ -143,9 +143,10 @@ plots = []
 if exp_types:
     # Dynamic layout
     if len(exp_types) == 1:
-        layout_cols = [st]
+        layout_cols = [st.container()]
         n_cols = 1
         fig_size = (14, 6)
+    
     elif len(exp_types) <= 3:
         layout_cols = st.columns(2)
         n_cols = 2
